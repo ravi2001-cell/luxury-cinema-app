@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-db-service
+  namespace: default
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: db-backend
+  clusterIP: None # Headless service pattern for stateful set tracking
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-stateful
+  namespace: default
+spec:
+  serviceName: "mysql-db-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-backend
+  template:
+    metadata:
+      labels:
+        app: db-backend
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.7
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret-vault
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: "cinema_db"
+            - name: MYSQL_USER
+              value: "cinema_user"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret-vault
+                  key: mysql-user-password
+          ports:
+            - containerPort: 3306
+              name: dbport
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
