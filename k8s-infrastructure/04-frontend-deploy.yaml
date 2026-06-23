@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-presentation-deployment
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: web-presentation
+  template:
+    metadata:
+      labels:
+        tier: web-presentation
+    spec:
+      containers:
+        - name: luxury-nginx-web
+          image: rkdocker1800/movie_booking:movie
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-public-nodeport
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30082
+  selector:
+    tier: web-presentation
