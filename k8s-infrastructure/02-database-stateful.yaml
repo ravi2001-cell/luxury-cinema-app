@@ -29,6 +29,8 @@ spec:
       containers:
         - name: mysql
           image: mysql:5.7
+          args:
+            - "--ignore-db-dir=lost+found"
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -65,6 +67,7 @@ spec:
       resources:
         requests:
           storage: 2Gi
+
 # apiVersion: v1
 # kind: Service
 # metadata:
